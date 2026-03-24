@@ -1,18 +1,15 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Edit({ game }) {
-    // Para envío de archivos en actualización con Inertia, a veces se usa post con _method: 'put'
+    // Formulario simplificado: solo título, descripción y portada
     const { data, setData, post, processing, errors } = useForm({
         _method: 'put',
         title: game.title || '',
         description: game.description || '',
-        url: game.url || '',
-        is_published: game.is_published ? true : false,
         thumbnail: null,
     });
 
@@ -24,104 +21,90 @@ export default function Edit({ game }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Editar Juego: {game.title}
-                </h2>
+                <div className="flex items-center">
+                    <Link href={route('games.index')} className="mr-4 text-gray-400 hover:text-indigo-600">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    </Link>
+                    <h2 className="text-xl font-semibold text-gray-800 leading-tight">
+                        Editar Juego: {game.title}
+                    </h2>
+                </div>
             }
         >
             <Head title={`Editar ${game.title}`} />
 
             <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900 border-b border-gray-200">
+                <div className="mx-auto max-w-3xl sm:px-6 lg:px-8">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg border p-8">
+                        
+                        <form onSubmit={submit} className="space-y-6">
                             
-                            <form onSubmit={submit} className="max-w-xl">
-                                <div>
-                                    <InputLabel htmlFor="title" value="Título" />
-                                    <TextInput
-                                        id="title"
-                                        type="text"
-                                        name="title"
-                                        value={data.title}
-                                        className="mt-1 block w-full"
-                                        autoComplete="title"
-                                        onChange={(e) => setData('title', e.target.value)}
-                                    />
-                                    <InputError message={errors.title} className="mt-2" />
-                                </div>
+                            {/* Título */}
+                            <div>
+                                <InputLabel htmlFor="title" value="Título del Juego" />
+                                <TextInput
+                                    id="title"
+                                    type="text"
+                                    value={data.title}
+                                    className="mt-1 block w-full"
+                                    onChange={(e) => setData('title', e.target.value)}
+                                />
+                                <InputError message={errors.title} className="mt-2" />
+                            </div>
 
-                                <div className="mt-4">
-                                    <InputLabel htmlFor="description" value="Descripción (Opcional)" />
-                                    <textarea
-                                        id="description"
-                                        name="description"
-                                        value={data.description}
-                                        className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                        onChange={(e) => setData('description', e.target.value)}
-                                        rows="3"
-                                    />
-                                    <InputError message={errors.description} className="mt-2" />
-                                </div>
+                            {/* Descripción */}
+                            <div>
+                                <InputLabel htmlFor="description" value="Descripción" />
+                                <textarea
+                                    id="description"
+                                    value={data.description}
+                                    className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                    onChange={(e) => setData('description', e.target.value)}
+                                    rows="4"
+                                />
+                                <InputError message={errors.description} className="mt-2" />
+                            </div>
 
-                                <div className="mt-4">
-                                    <InputLabel htmlFor="url" value="Ruta / URL (*)" />
-                                    <TextInput
-                                        id="url"
-                                        type="text"
-                                        name="url"
-                                        value={data.url}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) => setData('url', e.target.value)}
-                                    />
-                                    <InputError message={errors.url} className="mt-2" />
-                                </div>
-
-                                <div className="mt-4 block">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            name="is_published"
-                                            checked={data.is_published}
-                                            onChange={(e) => setData('is_published', e.target.checked)}
-                                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                                        />
-                                        <span className="ms-2 text-sm text-gray-600">Publicado</span>
-                                    </label>
-                                    <InputError message={errors.is_published} className="mt-2" />
-                                </div>
-
-                                <div className="mt-4">
-                                    <InputLabel htmlFor="thumbnail" value="Actualizar Imagen (Opcional)" />
+                            {/* Portada / Thumbnail */}
+                            <div className="bg-gray-50 p-4 rounded-lg border">
+                                <InputLabel htmlFor="thumbnail" value="Imagen de Portada" />
+                                
+                                <div className="mt-2 flex items-center space-x-4">
                                     {game.thumbnail && (
-                                        <div className="mb-2 text-sm text-gray-500">
-                                            Imagen actual guardada. Sube una nueva para reemplazarla.
-                                        </div>
+                                        <img 
+                                            src={game.thumbnail.startsWith('http') ? game.thumbnail : '/storage/' + game.thumbnail} 
+                                            className="h-20 w-32 object-cover rounded border" 
+                                            alt="Actual" 
+                                        />
                                     )}
-                                    <input
-                                        type="file"
-                                        id="thumbnail"
-                                        name="thumbnail"
-                                        onChange={(e) => setData('thumbnail', e.target.files[0])}
-                                        className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                    <input 
+                                        type="file" 
+                                        className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                        onChange={(e) => setData('thumbnail', e.target.files[0])} 
+                                        accept="image/*" 
                                     />
-                                    <InputError message={errors.thumbnail} className="mt-2" />
                                 </div>
+                                <InputError message={errors.thumbnail} className="mt-2" />
+                            </div>
 
-                                <div className="mt-6 flex items-center justify-end">
-                                    <Link
-                                        href={route('games.index')}
-                                        className="rounded-md px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
-                                    >
-                                        Cancelar
-                                    </Link>
-                                    <PrimaryButton className="ms-4" disabled={processing}>
-                                        Actualizar Juego
-                                    </PrimaryButton>
-                                </div>
-                            </form>
+                            {/* Botones */}
+                            <div className="flex items-center justify-end space-x-3 border-t pt-6">
+                                <Link
+                                    href={route('games.index')}
+                                    className="text-sm text-gray-600 hover:underline"
+                                >
+                                    Cancelar
+                                </Link>
+                                <button 
+                                    type="submit" 
+                                    disabled={processing}
+                                    className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150"
+                                >
+                                    {processing ? 'Guardando...' : 'Guardar Cambios'}
+                                </button>
+                            </div>
+                        </form>
 
-                        </div>
                     </div>
                 </div>
             </div>
