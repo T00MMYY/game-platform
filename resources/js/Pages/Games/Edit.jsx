@@ -10,6 +10,8 @@ export default function Edit({ game }) {
         _method: 'put',
         title: game.title || '',
         description: game.description || '',
+        url: game.url || '',
+        is_published: game.is_published || false,
         thumbnail: null,
     });
 

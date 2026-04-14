@@ -21,6 +21,7 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/photo', [\App\Http\Controllers\ProfilePhotoController::class, 'update'])->name('profile.photo.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
@@ -31,6 +32,9 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/play', [\App\Http\Controllers\Player\GameController::class, 'index'])->name('play.index');
     Route::get('/play/{game}', [\App\Http\Controllers\Player\GameController::class, 'show'])->name('play.show');
+    
+    // Rutas de API internas para la plataforma con sesión web
+    Route::post('/api/session/start', [\App\Http\Controllers\Api\SessionController::class, 'start']);
 });
 
 require __DIR__.'/auth.php';

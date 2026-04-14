@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  face_recognition:
+    build:
+      context: ./face_recognition_service
+    container_name: face_recognition_microservice
+    ports:
+      - "8005:8000"
+    volumes:
+      # Montamos un volumen para que los pesos de las redes neuronales 
+      # se conserven y no se descarguen cada vez que abres el contenedor
+      - deepface_weights:/root/.deepface/weights
+    restart: unless-stopped
+
+volumes:
+  deepface_weights:
