@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import FaceVerificationCamera from './Partials/FaceVerificationCamera';
+import ChatBox from '@/Components/ChatBox';
 
 export default function GameShow({ auth, game }) {
     const [isVerified, setIsVerified] = useState(false);
@@ -60,6 +61,9 @@ export default function GameShow({ auth, game }) {
                             ></iframe>
                         )}
                     </div>
+                    {isVerified && (
+                        <ChatBox gameId={game.id} currentUser={auth.user} />
+                    )}
                     {game.description && (
                         <div className="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-100 max-w-6xl mx-auto">
                             <div className="p-5 text-gray-900">

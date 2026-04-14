@@ -35,6 +35,10 @@ Route::middleware('auth')->group(function () {
     
     // Rutas de API internas para la plataforma con sesión web
     Route::post('/api/session/start', [\App\Http\Controllers\Api\SessionController::class, 'start']);
+    
+    // Chat endpoints
+    Route::get('/games/{game}/chat', [\App\Http\Controllers\ChatMessageController::class, 'index']);
+    Route::post('/games/{game}/chat', [\App\Http\Controllers\ChatMessageController::class, 'store']);
 });
 
 require __DIR__.'/auth.php';
