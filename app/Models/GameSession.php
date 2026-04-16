@@ -10,7 +10,22 @@ class GameSession extends Model
         'user_id',
         'game_id',
         'started_at',
-        'ended_at',
-        'duration',
+        'finished_at',
+        'score',
     ];
+
+    protected $casts = [
+        'started_at' => 'datetime',
+        'finished_at' => 'datetime',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function game()
+    {
+        return $this->belongsTo(Game::class);
+    }
 }

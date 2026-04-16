@@ -23,10 +23,19 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/photo', [\App\Http\Controllers\ProfilePhotoController::class, 'update'])->name('profile.photo.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile/security', function () {
+        return Inertia::render('Profile/SecuritySettings');
+    })->name('profile.security');
 });
 
 Route::middleware(['auth', 'role:admin,manager'])->group(function () {
     Route::resource('games', \App\Http\Controllers\GameController::class);
+});
+
+// Admin routes
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+    Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
 });
 
 Route::middleware('auth')->group(function () {

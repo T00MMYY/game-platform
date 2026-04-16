@@ -44,6 +44,44 @@ export default function AuthenticatedLayout({ header, children }) {
                                         Juegos
                                     </NavLink>
                                 )}
+                                {user.role?.name === 'admin' && (
+                                    <div className="relative inline-flex">
+                                        <Dropdown>
+                                            <Dropdown.Trigger>
+                                                <span className="inline-flex rounded-md">
+                                                    <button
+                                                        type="button"
+                                                        className="inline-flex items-center rounded-md border border-transparent bg-transparent px-1 py-2 text-sm font-medium leading-4 text-gray-600 transition duration-150 ease-in-out hover:text-gray-900 focus:outline-none"
+                                                    >
+                                                        Admin
+
+                                                        <svg
+                                                            className="-me-0.5 ms-2 h-4 w-4"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            viewBox="0 0 20 20"
+                                                            fill="currentColor"
+                                                        >
+                                                            <path
+                                                                fillRule="evenodd"
+                                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                                clipRule="evenodd"
+                                                            />
+                                                        </svg>
+                                                    </button>
+                                                </span>
+                                            </Dropdown.Trigger>
+
+                                            <Dropdown.Content>
+                                                <Dropdown.Link href={route('admin.users.index')}>
+                                                    Usuarios
+                                                </Dropdown.Link>
+                                                <Dropdown.Link href={route('admin.roles.index')}>
+                                                    Roles
+                                                </Dropdown.Link>
+                                            </Dropdown.Content>
+                                        </Dropdown>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -79,6 +117,11 @@ export default function AuthenticatedLayout({ header, children }) {
                                             href={route('profile.edit')}
                                         >
                                             Profile
+                                        </Dropdown.Link>
+                                        <Dropdown.Link
+                                            href={route('profile.security')}
+                                        >
+                                            Seguridad
                                         </Dropdown.Link>
                                         <Dropdown.Link
                                             href={route('logout')}
@@ -162,6 +205,22 @@ export default function AuthenticatedLayout({ header, children }) {
                                 Juegos
                             </ResponsiveNavLink>
                         )}
+                        {user.role?.name === 'admin' && (
+                            <>
+                                <ResponsiveNavLink
+                                    href={route('admin.users.index')}
+                                    active={route().current('admin.users.*')}
+                                >
+                                    Admin - Usuarios
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('admin.roles.index')}
+                                    active={route().current('admin.roles.*')}
+                                >
+                                    Admin - Roles
+                                </ResponsiveNavLink>
+                            </>
+                        )}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">
@@ -177,6 +236,9 @@ export default function AuthenticatedLayout({ header, children }) {
                         <div className="mt-3 space-y-1">
                             <ResponsiveNavLink href={route('profile.edit')}>
                                 Profile
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink href={route('profile.security')}>
+                                Seguridad
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"

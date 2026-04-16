@@ -72,4 +72,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Game::class);
     }
+
+    /**
+     * Get the game sessions for this user.
+     */
+    public function gameSessions()
+    {
+        return $this->hasMany(GameSession::class);
+    }
+
+    /**
+     * Get the chat messages from this user.
+     */
+    public function chatMessages()
+    {
+        return $this->hasMany(ChatMessage::class);
+    }
 }

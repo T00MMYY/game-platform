@@ -73,4 +73,48 @@ class SessionController extends Controller
             'message' => 'Identidad verificada. Sesión iniciada.'
         ], 201);
     }
+
+    /**
+     * End a game session
+     */
+    public function end(Request $request)
+    {
+        $request->validate([
+            'session_id' => 'required|exists:game_sessions,id',
+            'score' => 'required|integer|min:0',
+        ]);
+
+        $session = GameSession::findOrFail($request->session_id);
+
+        // Verify ownership
+        if ($session->user_id !== auth()->id()) {
+            return response()->json(['message' => 'No autorizado'], 403);
+        }
+
+        // Update session
+        $session->update([
+            'finished_at' => Carbon::now(),
+            'score' => $request->score,
+        ]);
+
+        return response()->json([
+            'message' => 'Sesión terminada',
+            'session' => $session
+        ]);
+    }
+
+    /**
+     * Get session details
+     */
+    public function show($sessionId)
+    {
+        $session = GameSession::with('game', 'user')->findOrFail($sessionId);
+
+        // Verify ownership
+        if ($session->user_id !== auth()->id()) {
+            return response()->json(['message' => 'No autorizado'], 403);
+        }
+
+        return response()->json($session);
+    }
 }

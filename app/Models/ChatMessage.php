@@ -8,6 +8,11 @@ class ChatMessage extends Model
 {
     protected $fillable = ['user_id', 'game_id', 'message'];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
