@@ -80,11 +80,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         >
                                             Profile
                                         </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route('profile.security')}
-                                        >
-                                            Seguridad
-                                        </Dropdown.Link>
+
                                         <Dropdown.Link
                                             href={route('logout')}
                                             method="post"
