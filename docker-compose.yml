@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Microservicio de Python para reconocimiento facial
   face_recognition:
     build:
       context: ./face_recognition_service
@@ -8,9 +9,19 @@ services:
     ports:
       - "8005:8000"
     volumes:
-      # Montamos un volumen para que los pesos de las redes neuronales 
-      # se conserven y no se descarguen cada vez que abres el contenedor
+      # Mantenemos los pesos de las redes neuronales para evitar descargas repetitivas
       - deepface_weights:/root/.deepface/weights
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+
+  # Servidor de mensajería (Broker)
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # Puerto AMQP para envío de mensajes desde Laravel
+      - "15672:15672" # Interfaz web de gestión (http://localhost:15672)
     restart: unless-stopped
 
 volumes:
