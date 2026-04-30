@@ -1,55 +1,406 @@
-# 🎮 Game Platform CRM
+# 🎮 Game Platform CRM & AI Integration
 
-Bienvenido a **Game Platform CRM**, un sistema integral desarrollado para la gestión y distribución de videojuegos web. Esta plataforma permite a los administradores subir, catalogar y organizar juegos como un CRM, mientras proporciona a los jugadores un entorno unificado y fluido donde jugarlos.
-
----
-
-## 🛠 Tecnologías Utilizadas y su Función
-
-*   **Laravel 11 (PHP):** Framework principal del backend. Coordina todo el sistema, manejando el enrutamiento, la autenticación, los permisos mediante middlewares y la comunicación con la base de datos a través de Eloquent ORM.
-*   **Inertia.js:** Tecnología que actúa como puente entre el backend (Laravel) y el frontend (React). Permite construir la aplicación como una *Single Page Application* (SPA) sin la complejidad de crear una API intermedia y usar rutas del lado del cliente.
-*   **React:** Librería encargada de la capa de presentación (Frontend). Construye interfaces interactivas, como los formularios dinámicos, tablas de gestión y modales de forma declarativa.
-*   **PostgreSQL:** Sistema gestor de bases de datos relacional. Elegido por su robustez, rendimiento en consultas relacionales complejas y seguridad en el manejo de datos de usuarios y juegos.
-*   **Tailwind CSS:** Framework de diseño utilitario para aplicar estilos rápidamente a todos los componentes de la interfaz de la plataforma CRM.
-*   **Vite:** Herramienta de compilación ultrarrápida (Bundler). Se encarga de transformar y empaquetar el código JSX/React, el CSS y en caso de que un juego se agregue directamente, compilar sus assets estáticos para que el navegador los entienda.
+Bienvenido a **Game Platform CRM**, un sistema integral para la gestión de videojuegos web potenciado con:
+- ✅ **RabbitMQ** para arquitectura orientada a eventos
+- ✅ **MCP (Model Context Protocol)** para integración con IA (GitHub + RabbitMQ)
+- ✅ **Reconocimiento Facial Biométrico** con DeepFace
+- ✅ **Chat en Tiempo Real** con Reverb/WebSockets
 
 ---
 
-## 🏗 Implementación de la Arquitectura
+## 🛠️ Tecnologías Utilizadas
 
-### 1. Base de Datos
-El diseño de la base de datos se ha desarrollado priorizando la escalabilidad e integridad referencial utilizando **Migraciones de Laravel** y **Eloquent ORM**.
+### Core del CRM
+- **Laravel 11** (PHP): Framework principal del backend
+- **Inertia.js & React**: SPA para gestión del catálogo y panel admin
+- **SQLite/PostgreSQL**: Base de datos relacional
+- **Tailwind CSS & Vite**: Diseño moderno y compilación rápida
 
-*   **Tablas core:** `users`, `roles`, y `games`.
-*   **Modelos y Relaciones:** Se implementan relaciones One-to-Many (`1:N`). 
-    *   Un `User` pertenece a un `Role` (`belongsTo`).
-    *   Un `User` puede crear varios `Games` (`hasMany`). 
-    *   El modelo `Game` contiene la información vital del recurso CRM: `title`, `description`, `url` (origen del archivo del juego o enlace externo), `thumbnail` e `is_published`.
-*   **PostgreSQL** es el motor central utilizado, configurado a través de variables de entorno estandarizadas (`.env`).
+### Infraestructura de Eventos e IA
+- **RabbitMQ 3-management**: Broker de mensajería con panel de gestión en puerto 15672
+- **Docker**: Orquestación de servicios
+- **Microservicio Python**: DeepFace para reconocimiento facial
+- **MCP Servers**: Integración con GitHub y RabbitMQ vía Claude Desktop
 
-### 2. Autenticación y Control de Accesos (Roles)
-La seguridad es estricta y controlada exclusivamente desde el servidor backend para evitar manipulaciones de lado del cliente.
+---
 
-*   **Sistema Base:** Se implementó Laravel Breeze/Sanctum como punto de entrada de sesión sólido, proveyendo registro, inicio y deslogueo.
-*   **Roles y Middlewares:** Se crearon 3 perfiles jerárquicos: `Admins`, `Managers` y `Players`.
-    *   Para separar privilegios, se ha creado un **Middleware** `CheckRole` en Laravel.
-    *   Si un `Player` intenta escribir manualmente en el navegador la URL del panel de control de administrador (ej: `/games/create`), Laravel abortará la petición, devolviendo un error de acceso no autorizado, protegiendo todo el CRUD.
+## 🚀 Inicio Rápido
 
-### 3. API y Separación de Rutas Estratégica
-La arquitectura de enrutamiento asegura que la lógica de renderizado web y los servicios de datos programáticos no converjan, manteniendo un código limpio.
+### 1. Requisitos Previos
 
-*   **Capa Web (`routes/web.php`):** Gestiona la interfaz humana del CRM. Coordina el menú lateral, la navegación autenticada y las vistas de catálogo, devolviendo estrictamente componentes `Inertia::render()`.
-*   **Capa API (`routes/api.php`):** Diseñada para consumo *Stateless*. Devuelve la información de la base de datos puramente en formato **JSON**. Esto significa que los juegos producidos por terceros podrán hacer peticiones `fetch()` a la API del proyecto base (para descargar configuraciones, puntajes, etc.) utilizando una abstracción estándar REST.
+```bash
+# Dependencias necesarias
+- Docker & Docker Desktop
+- PHP 8.2+
+- Node.js 18+
+- Composer
+- Git
+```
 
-### 4. Gestión de Juegos (CRUD Inverso)
-El módulo principal del CRM es la gestión de recursos o videojuegos ("Games").
-*   Los usuarios con rol de *Admin* o *Gestor* tienen a su disposición un panel completo (Create, Read, Update, Delete). 
-*   **Separación del Código del Juego:** La plataforma no alberga en su código fuente base la lógica de programación del videojuego en sí (código C#, Blueprints, Vue en bruto, etc.). En su lugar, pide el empaquetado final o una **URL externa** (estática) que apunta a un servidor (o a la carpeta estática `public/dist/`).
-*   Esto mantiene el core de Laravel inmaculable, delegando a los desarrolladores del juego la responsabilidad de proveer un WebGL, HTML5 o React/Vue ya encapsulado (Build).
+### 2. Instalación Base del Proyecto
 
-### 5. Experiencia de Jugador y Flujo de Juego
-La experiencia objetivo principal se ha concretado mediante una "Player View" dedicada, implementada a través de un controlador especializado (`Player/GameController`):
+```bash
+# Clonar y configurar
+git clone <tu-repo>
+cd game-platform
 
-1.  **Catálogo Automatizado:** Los jugadores exploran un grid de juegos. A nivel backend, se filtra automáticamente usando la cláusula `where('is_published', true)`, garantizando que el usuario estándar nunca pueda previsualizar prototipos ocultos de los administradores.
-2.  **Juego Embebido con iFrame:** Tras hacer click, ocurre la magia central del proyecto. Se inyecta la URL oficial del juego subido dentro de la etiqueta HTML5 `<iframe allowFullScreen />`. 
-3.  **Resultados de Inmersión:** Este approach hace que el jugador no abandone el portal, manteniendo visibles los logotipos y menús de navegación de la plataforma oficial mientras disfruta del juego a resolución completa embebido en la pantalla principal.
+# Instalar dependencias
+composer install
+npm install
+
+# Generar clave de aplicación
+php artisan key:generate
+
+# Ejecutar migraciones
+php artisan migrate
+```
+
+### 3. Levantar RabbitMQ con Docker
+
+```bash
+# Opción A: Comando directo
+docker run -d \
+  --name rabbitmq \
+  -p 5672:5672 \
+  -p 15672:15672 \
+  rabbitmq:3-management
+
+# Opción B: Si ya existe el contenedor
+docker start rabbitmq
+
+# Verificar: http://localhost:15672 (credenciales: guest/guest)
+```
+
+### 4. Configurar Variables de Entorno (`.env`)
+
+```env
+# Queue - IMPORTANTE: Cambiar de database a rabbitmq cuando esté listo
+QUEUE_CONNECTION=database
+
+# RabbitMQ (cuando estés listo para producción)
+# QUEUE_CONNECTION=rabbitmq
+# RABBITMQ_HOST=localhost
+# RABBITMQ_PORT=5672
+# RABBITMQ_USER=guest
+# RABBITMQ_PASSWORD=guest
+# RABBITMQ_VHOST=/
+
+# Broadcast (para chat en tiempo real)
+BROADCAST_CONNECTION=log
+
+# GitHub (se configura después con MCP)
+GITHUB_PERSONAL_ACCESS_TOKEN=tu_token_aqui
+```
+
+---
+
+## 🔗 Configurar MCP (Model Context Protocol)
+
+### Paso 1: Instalar MCP para GitHub
+
+#### 1.1 Crear GitHub Personal Access Token
+
+1. Ve a [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+2. Haz clic en "Generate new token (classic)"
+3. Selecciona permisos: `repo`, `read:issues`, `write:issues`
+4. Copia el token (ej: `ghp_xxxxxxxxxxxx`)
+
+#### 1.2 Configurar MCP Server en Claude Desktop
+
+Edita el archivo de configuración de Claude Desktop:
+
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxxxxxxxxx",
+        "-e",
+        "GITHUB_TOOLSETS=repos,issues,pull_requests",
+        "ghcr.io/github/github-mcp-server"
+      ]
+    }
+  }
+}
+```
+
+**Uso desde Claude Desktop**:
+```
+"Crea una issue para la cola de validaciones de juegos"
+"Revisa la PR y dime si falta validación en las sesiones"
+"Lista todos los issues abiertos del proyecto"
+```
+
+---
+
+### Paso 2: Instalar MCP para RabbitMQ
+
+#### 2.1 Configurar MCP Server en Claude Desktop
+
+Actualiza el archivo `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxxxxxxxxx",
+        "-e",
+        "GITHUB_TOOLSETS=repos,issues,pull_requests",
+        "ghcr.io/github/github-mcp-server"
+      ]
+    },
+    "rabbitmq": {
+      "command": "uvx",
+      "args": [
+        "amq-mcp-server-rabbitmq@latest",
+        "--url",
+        "amqp://guest:guest@localhost:5672",
+        "--allow-mutative-tools"
+      ]
+    }
+  }
+}
+```
+
+**Instalación previa** (si no tienes `uvx`):
+```bash
+pip install uv
+```
+
+**Uso desde Claude Desktop**:
+```
+"Lista todas las colas de RabbitMQ"
+"Verifica si la cola eventos_github tiene mensajes pendientes"
+"¿Cuántos mensajes hay en la cola validaciones_juego?"
+```
+
+---
+
+## 📋 Sistema de Eventos con RabbitMQ
+
+### Paso 1: Instalar la librería PHP de RabbitMQ
+
+```bash
+composer require php-amqplib/php-amqplib
+```
+
+### Paso 2: Crear Eventos en Laravel
+
+#### Ejemplo: Evento cuando se publica un juego
+
+```bash
+php artisan make:event GamePublished
+```
+
+**`app/Events/GamePublished.php`**:
+```php
+<?php
+namespace App\Events;
+
+use App\Models\Game;
+use Illuminate\Bus\Queueable;
+use Illuminate\Queue\SerializesModels;
+
+class GamePublished
+{
+    use Queueable, SerializesModels;
+
+    public function __construct(public Game $game)
+    {
+    }
+}
+```
+
+### Paso 3: Crear Jobs que Publiquen a RabbitMQ
+
+```bash
+php artisan make:job PublishGameToQueue
+```
+
+**`app/Jobs/PublishGameToQueue.php`**:
+```php
+<?php
+namespace App\Jobs;
+
+use App\Models\Game;
+use Illuminate\Bus\Queueable;
+use Illuminate\Queue\SerializesModels;
+
+class PublishGameToQueue implements ShouldQueue
+{
+    use Queueable, SerializesModels;
+
+    public function __construct(public Game $game)
+    {
+    }
+
+    public function handle()
+    {
+        $message = [
+            'event' => 'game.published',
+            'game_id' => $this->game->id,
+            'game_name' => $this->game->name,
+            'timestamp' => now(),
+        ];
+
+        // Aquí enviamos a RabbitMQ o lo procesamos localmente
+        \Log::info('Evento publicado', $message);
+    }
+}
+```
+
+### Paso 4: Activar Eventos cuando Ocurren Acciones
+
+En el **Controlador** o **Modelo**:
+
+```php
+// En app/Http/Controllers/GameController.php o similar
+use App\Events\GamePublished;
+use App\Jobs\PublishGameToQueue;
+
+public function publish(Game $game)
+{
+    $game->published_at = now();
+    $game->save();
+
+    // Disparar evento
+    event(new GamePublished($game));
+    
+    // O enviar directamente a la cola
+    PublishGameToQueue::dispatch($game);
+
+    return response()->json(['message' => 'Juego publicado']);
+}
+```
+
+### Paso 5: Consumir Eventos (Workers)
+
+Crear un worker que escuche eventos:
+
+```bash
+php artisan make:command ConsumeGameEvents
+```
+
+**`app/Console/Commands/ConsumeGameEvents.php`**:
+```php
+<?php
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+
+class ConsumeGameEvents extends Command
+{
+    protected $signature = 'app:consume-game-events';
+    protected $description = 'Consume game events from RabbitMQ';
+
+    public function handle()
+    {
+        while (true) {
+            // Lógica para consumir eventos
+            $this->info('Escuchando eventos...');
+            sleep(5);
+        }
+    }
+}
+```
+
+Ejecutar:
+```bash
+php artisan app:consume-game-events
+```
+
+---
+
+## 🏗️ Arquitectura General
+
+```
+GitHub (código)
+    ↓
+GitHub MCP ← Claude Desktop (supervisor IA)
+    ↓
+Laravel (aplicación)
+    ↓
+RabbitMQ (message broker)
+    ↓
+Workers (procesar eventos)
+    ↓
+RabbitMQ MCP ← Claude Desktop (inspeccionar colas)
+```
+
+---
+
+## 📊 Monitoreo
+
+### Panel de RabbitMQ
+- **URL**: http://localhost:15672
+- **Usuario**: guest
+- **Contraseña**: guest
+
+Ver:
+- ✅ Colas creadas
+- ✅ Mensajes en cola
+- ✅ Conexiones activas
+- ✅ Exchanges configurados
+
+### Desde Claude Desktop
+Con MCP conectado:
+```
+"¿Cuál es el estado actual de RabbitMQ?"
+"Muéstrame los eventos que se publicaron en las últimas 24 horas"
+"¿Hay algún job fallido en la cola?"
+```
+
+---
+
+## 🔄 Flujo Completo de Ejemplo
+
+### Escenario: Publicar un juego y procesar en RabbitMQ
+
+1. **Usuario publica juego** en el panel admin
+2. **Laravel publica evento** `GamePublished`
+3. **Job se envía a RabbitMQ** (cola `game.events`)
+4. **Worker consume el evento** y ejecuta tareas (validación, notificaciones, etc.)
+5. **Claude Desktop puede inspeccionar** estado de la cola con MCP
+6. **Si falla algo, Claude crea automáticamente una issue** en GitHub
+
+---
+
+## 📝 Notas Importantes
+
+- ⚠️ RabbitMQ usa credenciales por defecto (guest/guest) - cambiar en producción
+- ⚠️ El GitHub PAT debe guardarse de forma segura (usar `.env`)
+- ⚠️ Verificar que Docker Desktop esté ejecutándose antes de usar RabbitMQ
+- ℹ️ Los ejemplos mostrados son orientativos - adaptarlos según necesidades específicas
+
+---
+
+## 🤝 Flujo de Trabajo Recomendado
+
+1. Levantar RabbitMQ con Docker
+2. Configurar MCP en Claude Desktop (GitHub + RabbitMQ)
+3. Crear eventos y jobs en Laravel
+4. Testear flujo manualmente
+5. Automatizar con Workers
+6. Usar Claude Desktop para supervisar y crear issues
+
+---
+
+## 📖 Recursos Útiles
+
+- [Laravel Queue Documentation](https://laravel.com/docs/queues)
+- [RabbitMQ Official Docs](https://www.rabbitmq.com/documentation.html)
+- [Model Context Protocol](https://modelcontextprotocol.io/)
+- [GitHub MCP Server](https://github.com/github/mcp-server-github)
